@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+    <style>
+        .jumbotron {
+            background-color: navy;
+            color: white;
+            width: 80%;
+            margin: auto;
+        }
+        .form-control {
+            width: 90%;
+            padding:10px;
+            margin:10px;
+        }
+        #container {
+            width: 80%;
+            padding:10px;
+            margin: auto;
+            border: 1px solid gray;
+        }
+    </style>
+</head>
+<body>
+    <div class="jumbotron">
+        <h1 class="display-4">New York Times Search</h1>
+        <p class="lead"></p>
+        <p></p>
+      </div>
+    <div id="container">
+        <p>Search Terms</p>
+        <input id="search-input" class="form-control form-control-lg searchterms" type="text" placeholder=""><br>
+        <p>Number of Records to retrieve (up to 10 articles)</p>
+        <input id="number-to-retrieve" class="form-control searchterms" type="text" placeholder=""><br>
+        <p>Start year (optional)</p>
+        <input id="start" class="form-control form-control-sm searchterms" type="text" placeholder=""><br>
+        <p>End year (optional)</p>
+        <input id="end" class="form-control form-control-sm searchterms" type="text" placeholder="">
+        <button class="searchterms">Search</button><button id="clear">Clear results</button>
+        <p id="top-articles">Top Articles</p>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <script>
+        //to test API structure https://api.nytimes.com/svc/search/v2/articlesearch.json?q=election&api-key=mDW0UyaslGQkmloUYrg3u1f8uvAGbdMa&begin_date=start20120101&end_date=end20161231
+
+        var apiKey = "mDW0UyaslGQkmloUYrg3u1f8uvAGbdMa";
+        var topArticles = $("#top-articles");
+
+        $(".searchterms").on("change",startSearch);
+
+        function startSearch(event) {
+          event.stopPropagation();
+          event.preventDefault();
+            var keyword = $("#search-input").val();
+            var start = "";
+            var end = "";
+            console.log("user started search");
+            console.log("user input:", keyword)
+            if ($("#start").val()) {
+                start = "&begin_date=" +  parseInt($("#start").val()) + "0101";
+            }
+            if ($("#end").val()) {
+                end = "&end_date=" +  parseInt($("#end").val()) +"1231";
+            }
+            var queryURL = "https://api.nytimes.com/svc/search/v2/articlesearch.json?q=" + 
+                            keyword + "&api-key=" + apiKey + start + end;
+                            console.log(queryURL);
+            $.ajax({
+                method: "GET",
+                url: queryURL
+            }).then(function(response) {
+                console.log(response);
+
+                var numberToRetrieve = parseInt($("#number-to-retrieve").val());
+                for (var i = 0; i < numberToRetrieve; i++) {
+                    $("<h2>").text(response.response.docs[i].headline.main).css("color","blue").appendTo(topArticles);
+                    $("<p>").text(response.response.docs[i].abstract).appendTo(topArticles);
+                    $("<p>").text(response.response.docs[i].web_url).appendTo(topArticles);
+                    $("<p>").text("Published: " + response.response.docs[i].pub_date).appendTo(topArticles);
+                };  
+            });
+        };    
+        $("#clear").click(topArticles.empty());
+
+    </script>
+</body>
+</html>
